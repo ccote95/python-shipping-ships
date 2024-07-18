@@ -4,9 +4,9 @@ from nss_handler import HandleRequests, status
 
 
 # Add your imports below this line
-from views import list_docks, retrieve_dock, delete_dock, update_dock
-from views import list_haulers, retrieve_hauler, delete_hauler, update_hauler
-from views import list_ships, retrieve_ship, delete_ship, update_ship
+from views import list_docks, retrieve_dock, delete_dock, update_dock, new_dock
+from views import list_haulers, retrieve_hauler, delete_hauler, update_hauler, new_hauler
+from views import list_ships, retrieve_ship, delete_ship, update_ship, new_ship
 
 
 class JSONServer(HandleRequests):
@@ -112,8 +112,66 @@ class JSONServer(HandleRequests):
 
     def do_POST(self):
         """Handle POST requests from a client"""
+        
+        # Parse the URL (Assuming parse_url is a method you have)
+        url = self.parse_url(self.path)
+        
+        if url["requested_resource"] == "docks":
+            # Parse the JSON body of the request
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            dock_data = json.loads(post_data)
+            
+            # Call the function to add a new dock
+            success = new_dock(dock_data)
+            
+            # Prepare the response
+            if success:
+                self.send_response(201)  # HTTP status 201 Created
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'message': 'Dock created successfully'}).encode())
+            else:
+                self.send_response(500)  # Internal Server Error
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'message': 'Failed to create dock'}).encode())
+        
+        elif url["requested_resource"] == "ships":
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            ship_data = json.loads(post_data)
 
-        pass
+            success = new_ship(ship_data)
+
+            if success:
+                self.send_response(201)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'message': "Ship was created successfully"}).encode())
+            
+            else:
+                self.send_response(500)
+                self.send_header('Content-Type','application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'message': 'Failed to create ship'}).encode())
+
+        elif url["requested_resource"] == "haulers":
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            hauler_data = json.loads(post_data)
+
+            success = new_hauler(hauler_data)
+
+            if success:
+                self.send_response(201)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'message': "Hauler was created successfully"}).encode())
+            else:
+                self.send_response(500)
+                self.send_header('Content-Type','application/json')
+                self.wfile.write(json.dumps({'message':"Failed to create hauler"}))
 
 
 
